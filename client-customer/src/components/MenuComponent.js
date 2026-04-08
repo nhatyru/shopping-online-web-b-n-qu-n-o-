@@ -10,7 +10,7 @@ class Menu extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      categories: [],
+      categories: [], // đảm bảo luôn là array
       txtKeyword: '',
     };
   }
@@ -23,10 +23,21 @@ class Menu extends Component {
     axios
       .get('/api/customer/categories')
       .then((res) => {
-        this.setState({ categories: res.data });
+        // FIX: xử lý mọi dạng data trả về
+        const data = res.data;
+        let categories = [];
+
+        if (Array.isArray(data)) {
+          categories = data;
+        } else if (Array.isArray(data.categories)) {
+          categories = data.categories;
+        }
+
+        this.setState({ categories });
       })
       .catch((err) => {
         console.log(err);
+        this.setState({ categories: [] }); // fallback tránh crash
       });
   }
 
@@ -41,13 +52,16 @@ class Menu extends Component {
   }
 
   render() {
-    const cates = this.state.categories.map((item) => (
-      <li key={item._id}>
-        <Link to={'/product/category/' + item._id} className={linkClass}>
-          {item.name}
-        </Link>
-      </li>
-    ));
+    // FIX: check array trước khi map
+    const cates = Array.isArray(this.state.categories)
+      ? this.state.categories.map((item) => (
+          <li key={item._id}>
+            <Link to={'/product/category/' + item._id} className={linkClass}>
+              {item.name}
+            </Link>
+          </li>
+        ))
+      : null;
 
     return (
       <header className="border-b border-white/10 bg-black text-white shadow-soft">
@@ -59,8 +73,11 @@ class Menu extends Component {
             >
               ATELIER
             </Link>
+
             <nav className="hidden md:block">
-              <ul className="flex flex-wrap items-center gap-6">{cates}</ul>
+              <ul className="flex flex-wrap items-center gap-6">
+                {cates}
+              </ul>
             </nav>
           </div>
 
@@ -79,14 +96,16 @@ class Menu extends Component {
               <input
                 type="search"
                 placeholder="Search"
-                aria-label="Search products"
                 className="min-w-0 flex-1 bg-transparent py-2 text-sm text-white outline-none placeholder:text-white/45"
                 value={this.state.txtKeyword}
-                onChange={(e) => this.setState({ txtKeyword: e.target.value })}
+                onChange={(e) =>
+                  this.setState({ txtKeyword: e.target.value })
+                }
               />
+
               <button
                 type="submit"
-                className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-black transition-transform hover:bg-neutral-100 active:scale-95"
+                className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-black"
               >
                 Go
               </button>
@@ -95,7 +114,7 @@ class Menu extends Component {
             <button
               type="button"
               onClick={() => this.props.navigate('/mycart')}
-              className="rounded-full border border-white/30 bg-white px-5 py-2.5 text-sm font-medium text-black transition-all duration-200 hover:border-white hover:bg-neutral-100 active:scale-[0.98]"
+              className="rounded-full border border-white/30 bg-white px-5 py-2.5 text-sm font-medium text-black"
             >
               Cart
             </button>
