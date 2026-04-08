@@ -12,31 +12,27 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
-// Test API
-app.get('/hello', (req, res) => {
-  res.json({ message: 'Hello from server!' });
+// Test nhanh để biết API có chạy không
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
 });
 
-/**
- * APIs (PHẢI ĐẶT TRƯỚC phần static + app.get('*'))
- * Khi bật 2 dòng này, /api/customer/products/new sẽ trả JSON thay vì trả index.html
- */
+// ===== APIs (PHẢI ĐẶT TRƯỚC STATIC + app.get('*')) =====
 app.use('/api/admin', require('./api/admin.js'));
 app.use('/api/customer', require('./api/customer.js'));
 
-// ADMIN
+// ===== ADMIN BUILD =====
 app.use('/admin', express.static(path.resolve(__dirname, '../client-admin/build')));
 app.get('/admin/*', (req, res) => {
   res.sendFile(path.resolve(__dirname, '../client-admin/build', 'index.html'));
 });
 
-// CUSTOMER
+// ===== CUSTOMER BUILD (CATCH-ALL CUỐI CÙNG) =====
 app.use(express.static(path.resolve(__dirname, '../client-customer/build')));
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, '../client-customer/build', 'index.html'));
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });

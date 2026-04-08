@@ -19,16 +19,28 @@ class Home extends Component {
       axios.get('/api/customer/products/hot'),
     ])
       .then(([newRes, hotRes]) => {
+        const normalizeToArray = (data) => {
+          if (Array.isArray(data)) return data;
+          if (Array.isArray(data?.products)) return data.products;
+          if (Array.isArray(data?.data)) return data.data;
+          return [];
+        };
+
         this.setState({
-          newprods: newRes.data,
-          hotprods: hotRes.data,
+          newprods: normalizeToArray(newRes.data),
+          hotprods: normalizeToArray(hotRes.data),
           loading: false,
         });
       })
-      .catch(() => this.setState({ loading: false }));
+      .catch((err) => {
+        console.log('Home API error:', err);
+        this.setState({ loading: false });
+      });
   }
 
   renderProduct(item) {
+    const price = Number(item?.price ?? 0);
+
     return (
       <article
         key={item._id}
@@ -37,20 +49,24 @@ class Home extends Component {
         <Link to={'/product/' + item._id} className="block overflow-hidden bg-neutral-100">
           <img
             className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            src={'data:image/jpg;base64,' + item.image}
-            alt={item.name}
+            src={item?.image ? 'data:image/jpg;base64,' + item.image : ''}
+            alt={item?.name ?? ''}
           />
         </Link>
+
         <div className="space-y-2 p-5 text-center">
           <Link to={'/product/' + item._id}>
             <h3 className="text-sm font-semibold tracking-tight text-black transition-colors group-hover:underline">
-              {item.name}
+              {item?.name}
             </h3>
           </Link>
+
           <p className="text-xs text-neutral-500">Sizes S · M · L · XL</p>
+
           <p className="text-sm font-medium tabular-nums text-black">
-            {item.price.toLocaleString()} <span className="text-neutral-400">VND</span>
+            {price.toLocaleString()} <span className="text-neutral-400">VND</span>
           </p>
+
           <Link
             to={'/product/' + item._id}
             className="inline-block w-full rounded-full border border-black bg-black py-2.5 text-center text-xs font-semibold uppercase tracking-widest text-white transition-all duration-200 hover:bg-white hover:text-black"
@@ -67,7 +83,8 @@ class Home extends Component {
       return <PageSpinner label="Loading collection…" />;
     }
 
-    const { newprods, hotprods } = this.state;
+    const newprods = Array.isArray(this.state.newprods) ? this.state.newprods : [];
+    const hotprods = Array.isArray(this.state.hotprods) ? this.state.hotprods : [];
 
     return (
       <div className="space-y-16 lg:space-y-24">
@@ -91,6 +108,7 @@ class Home extends Component {
                 Shop collection
               </Link>
             </div>
+
             <div className="relative min-h-[280px] bg-neutral-800 lg:min-h-[420px]">
               <img
                 src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80"
@@ -113,6 +131,7 @@ class Home extends Component {
               </p>
             </div>
           </div>
+
           {newprods.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-8 py-16 text-center text-sm text-neutral-500">
               No products yet. Check back soon.
