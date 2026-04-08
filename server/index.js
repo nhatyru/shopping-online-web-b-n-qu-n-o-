@@ -17,8 +17,8 @@ app.get('/hello', (req, res) => {
   res.json({ message: 'Hello from server!' });
 });
 
-app.use('/api/admin', require('./api/admin.js'));
-app.use('/api/customer', require('./api/customer.js'));
+//app.use('/api/admin', require('./api/admin.js'));
+//app.use('/api/customer', require('./api/customer.js'));
 
 // ADMIN (đặt trước)
 app.use('/admin', express.static(path.resolve(__dirname, '../client-admin/build')));
